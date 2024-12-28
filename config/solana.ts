@@ -26,7 +26,7 @@ export async function getOrCreateAssociatedTokenAccount(
     confirmOptions?: web3.ConfirmOptions,
     programId = TOKEN_2022_PROGRAM_ID,
     associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID,
-): Promise<token.Account> {
+): Promise<web3.PublicKey> {
     const associatedToken = token.getAssociatedTokenAddressSync(
         mint,
         owner,
@@ -42,6 +42,7 @@ export async function getOrCreateAssociatedTokenAccount(
     try {
         account = await token.getAccount(connection, associatedToken, commitment, programId);
         console.log('Account:', account.address.toString());
+        return account.address;
         
     } catch (error: unknown) {
 
@@ -69,21 +70,29 @@ export async function getOrCreateAssociatedTokenAccount(
                 // Sign transaction
                 const signature = await wallet.sendTransaction(transaction, connection);
                 console.log('Signature:', signature);
+                await connection.confirmTransaction(signature, 'confirmed');
+                const account = await token.getAccount(connection, associatedToken, 'confirmed', programId);
+                return account.address;
+
             } catch (error: unknown) {
                 // Ignore all errors; for now there is no API-compatible way to selectively ignore the expected
                 // instruction error if the associated account exists already.
+                if (!(error instanceof token.TokenAccountNotFoundError)) {
+                    throw error;
+                }
                 console.error('Error creating associated token account:', error);
             }
             // Now this should always succeed
-            account = await token.getAccount(connection, associatedToken, commitment, programId);
-        } else {
+            const account = await token.getAccount(connection, associatedToken, 'confirmed', programId);
+            return account.address;
+            } else {
             throw error;
         }
     }
 
   
 
-    return account;
+    return account.address;
 }
 
 

@@ -65,7 +65,7 @@ const MintTokens = () => {
                     publicKey,
                     sendTransaction,
                 },
-                associatedTokenAccount.address,
+                associatedTokenAccount,
                 publicKey,
                 amount,
             );

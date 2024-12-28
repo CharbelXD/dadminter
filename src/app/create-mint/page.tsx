@@ -189,6 +189,8 @@ const Page = () => {
   };
 
   return (
+    <div className="flex flex-col min-h-screen">
+    <Header />  
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -294,6 +296,8 @@ const Page = () => {
         </motion.div>
       )}
     </motion.div>
+    <Footer />
+  </div>
   )
 };
 
