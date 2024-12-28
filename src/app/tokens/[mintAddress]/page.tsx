@@ -6,14 +6,12 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useParams } from 'next/navigation';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-import { Wallet } from 'lucide-react';
 
 const MintTokens = () => {
     const params = useParams();
     const mintAddress = params.mintAddress as string;
     const { publicKey, sendTransaction } = useWallet();
     const { connection } = useConnection();
-    const [toAddress, setToAddress] = useState('');
     const [mintAmount, setMintAmount] = useState('');
     const [loading, setLoading] = useState(false);
     const wallet = useWallet();
@@ -73,7 +71,6 @@ const MintTokens = () => {
             alert(`Successfully minted ${amount} tokens to ${wallet.publicKey?.toBase58()}`);
             
             // Clear form after successful mint
-            setToAddress('');
             setMintAmount('');
         } catch (error: any) {
             console.error('Error minting tokens:', error);

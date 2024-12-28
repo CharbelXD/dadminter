@@ -27,7 +27,7 @@ const Page = () => {
   const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
 
   const handleMint = (mintAddress: string) => {
-    router.push(`/tokenslist/${mintAddress}`);
+    router.push(`/tokens/${mintAddress}`);
   };
 
   const fetchMetadataFromUri = async (uri: string) => {

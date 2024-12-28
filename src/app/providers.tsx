@@ -1,8 +1,6 @@
 'use client'
 import React, { FC, useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { UnsafeBurnerWalletAdapter } from '@solana/wallet-adapter-wallets';
 import {
     WalletModalProvider,
     WalletDisconnectButton,
@@ -24,13 +22,6 @@ export function Providers({ children }: ProvidersProps) {
     <ConnectionProvider endpoint={"https://api.devnet.solana.com"}>
       <WalletProvider wallets={[]} autoConnect>
         <WalletModalProvider>
-          <div className='flex justify-end gap-4 pt-4 pr-4'>
-          <WalletMultiButton />
-          <WalletDisconnectButton />
-
-
-          </div>
-     
            {children}
         </WalletModalProvider>
       </WalletProvider>
