@@ -1,11 +1,21 @@
 'use client'
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { mintTo, getOrCreateAssociatedTokenAccount } from '../../../../config/solana';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { useParams } from 'next/navigation';
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, Coins, AlertCircle, CheckCircle2 } from 'lucide-react';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import TokenInfoSection from '@/components/token-info';
 
 const MintTokens = () => {
     const params = useParams();
@@ -14,117 +24,144 @@ const MintTokens = () => {
     const { connection } = useConnection();
     const [mintAmount, setMintAmount] = useState('');
     const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
     const wallet = useWallet();
+
+    useEffect(() => {
+        if (status.type) {
+            const timer = setTimeout(() => setStatus({ type: null, message: '' }), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
         if (!publicKey) {
-            alert('Please connect your wallet');
+            setStatus({ type: 'error', message: 'Please connect your wallet' });
             return;
         }
 
         try {
             setLoading(true);
             if (!wallet.publicKey) {
-                alert('Please connect your wallet');
-                return;
+                throw new Error('Wallet not connected');
             }
 
-            console.log('Creating or getting associated token account...');
             const associatedTokenAccount = await getOrCreateAssociatedTokenAccount(
-                new PublicKey(mintAddress), // Add mint address from URL,
-                wallet, // wallet
-                wallet.publicKey, // owner
+                new PublicKey(mintAddress),
+                wallet,
+                wallet.publicKey,
             );
             
-            console.log('Associated token account:', associatedTokenAccount.address.toString());
-
-            // Validate amount
             const amount = parseInt(mintAmount);
             if (isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid amount');
-                setLoading(false);
-                return;
+                throw new Error('Please enter a valid amount');
             }
 
-            console.log('Starting mint transaction...');
             const signature = await mintTo(
-                new PublicKey(mintAddress), // Add mint address from URL
+                new PublicKey(mintAddress),
                 {
                     publicKey,
                     sendTransaction,
                 },
-                associatedTokenAccount.address, // Use the associated token account address
-                publicKey, // authority
+                associatedTokenAccount.address,
+                publicKey,
                 amount,
             );
-
-            console.log('Mint transaction signature:', signature);
             
-            // Wait for confirmation
             const confirmation = await connection.confirmTransaction(signature, 'confirmed');
             if (confirmation.value.err) {
                 throw new Error('Transaction failed to confirm');
             }
 
-            alert(`Successfully minted ${amount} tokens to ${wallet.publicKey?.toBase58()}`);
-            
-            // Clear form after successful mint
+            setStatus({ type: 'success', message: `Successfully minted ${amount} tokens to ${wallet.publicKey.toBase58()}` });
             setMintAmount('');
         } catch (error: any) {
             console.error('Error minting tokens:', error);
-            alert(`Failed to mint tokens: ${error.message || 'Unknown error'}`);
+            setStatus({ type: 'error', message: error.message || 'Failed to mint tokens' });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="p-4 max-w-md mx-auto">
+        <div className="flex flex-col min-h-screen">
+            <Header />
+            <TokenInfoSection/>
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="container mx-auto px-4 py-8 max-w-md"
+        >
             <Card>
                 <CardHeader>
-                    <CardTitle>Mint Tokens</CardTitle>
+                    <CardTitle className="text-2xl font-bold">Mint Tokens</CardTitle>
+                    <CardDescription>Create new tokens for the selected mint address</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm font-medium text-gray-600">Token Mint Address:</p>
-                        <p className="font-mono text-sm break-all">{mintAddress}</p>
+                    <div className="mb-6 p-3 bg-secondary/50 rounded-lg">
+                        <Label className="text-sm font-medium text-secondary-foreground">Token Mint Address:</Label>
+                        <p className="font-mono text-sm break-all text-secondary-foreground">{mintAddress}</p>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                  
                         <div className="space-y-2">
-                            <label htmlFor="mintAmount" className="block text-sm font-medium">
-                                Amount to Mint:
-                            </label>
-                            <input
+                            <Label htmlFor="mintAmount">Amount to Mint:</Label>
+                            <Input
                                 type="number"
                                 id="mintAmount"
                                 value={mintAmount}
                                 onChange={(e) => setMintAmount(e.target.value)}
                                 placeholder="Enter mint amount"
-                                className="w-full p-2 border rounded"
                                 required
                                 min="1"
                                 disabled={loading}
                             />
                         </div>
-                        <button
-                            type="submit"
-                            disabled={loading || !publicKey}
-                            className={`w-full p-2 rounded ${
-                                loading || !publicKey
-                                    ? 'bg-gray-300 cursor-not-allowed'
-                                    : 'bg-blue-500 hover:bg-blue-600 text-white'
-                            }`}
-                        >
-                            {loading ? 'Processing...' : 'Mint Tokens'}
-                        </button>
                     </form>
                 </CardContent>
+                <CardFooter>
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={loading || !publicKey}
+                        className="w-full"
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                            </>
+                        ) : (
+                            <>
+                                <Coins className="mr-2 h-4 w-4" />
+                                Mint Tokens
+                            </>
+                        )}
+                    </Button>
+                </CardFooter>
             </Card>
+
+            {status.type && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-4"
+                >
+                    <Alert variant={status.type === 'error' ? 'destructive' : 'default'}>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>{status.type === 'error' ? 'Error' : 'Success'}</AlertTitle>
+                        <AlertDescription>{status.message}</AlertDescription>
+                    </Alert>
+                </motion.div>
+            )}
+        </motion.div>
+        <Footer />
         </div>
     );
 };
 
 export default MintTokens;
+

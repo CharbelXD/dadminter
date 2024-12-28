@@ -20,7 +20,7 @@ const Footer = () => {
           <div className="w-full md:w-1/3 mb-6 md:mb-0">
             <h4 className="text-lg font-semibold mb-2">Quick Links</h4>
             <ul className="space-y-2">
-              {['Airdrop', 'Create Mint', 'Tokens', 'Minting'].map((item) => (
+              {['Airdrop', 'Create-Mint', 'Tokens'].map((item) => (
                 <li key={item}>
                   <a href={`/${item.toLowerCase().replace(' ', '')}`} className="text-gray-400 hover:text-white transition duration-300">
                     {item}

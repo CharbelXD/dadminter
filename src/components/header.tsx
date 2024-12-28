@@ -17,7 +17,7 @@ const Header = () => {
           <Link className="mr-6 flex items-center space-x-2" href="/">
             <Coins className="h-6 w-6" />
             <span className="hidden font-bold sm:inline-block">
-              SolanaLauncher
+              Solana-Token-Launcher
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">

@@ -4,25 +4,32 @@ import React, { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { db } from '../../../config/firebase';
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { getTokenMetadata } from '@solana/spl-token';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import { Loader2, Coins, AlertCircle } from 'lucide-react';
 
 interface TokenMetadata {
   name: string;
   symbol: string;
   image: string;
+  description: string;
   mintAddress: string;
 }
 
-const Page = () => {
+const TokensPage = () => {
   const wallet = useWallet();
   const router = useRouter();
   const [tokens, setTokens] = useState<string[]>([]);
   const [tokenMetadata, setTokenMetadata] = useState<TokenMetadata[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
 
@@ -51,28 +58,25 @@ const Page = () => {
         TOKEN_2022_PROGRAM_ID,
       );
       
-      console.log('Initial metadata:', metadata);
-      
       if (metadata && metadata.uri) {
-        // Fetch the actual metadata from the URI
         const fullMetadata = await fetchMetadataFromUri(metadata.uri);
-        console.log('Full metadata:', fullMetadata);
         
         if (fullMetadata) {
           return {
             name: metadata.name || 'Unknown',
             symbol: metadata.symbol || 'Unknown',
-            image: fullMetadata.image || '/api/placeholder/200/200',
+            image: fullMetadata.image || '/placeholder.svg?height=200&width=200',
+            description: fullMetadata.description || '',
             mintAddress
           };
         }
       }
       
-      // Fallback if no URI metadata
       return {
         name: metadata?.name || 'Unknown',
         symbol: metadata?.symbol || 'Unknown',
-        image: '/api/placeholder/200/200',
+        image: '/placeholder.svg?height=200&width=200',
+        description: '',
         mintAddress
       };
     } catch (error) {
@@ -80,7 +84,8 @@ const Page = () => {
       return {
         name: 'Unknown Token',
         symbol: 'Unknown',
-        image: '/api/placeholder/200/200',
+        image: '/placeholder.svg?height=200&width=200',
+        description: '',
         mintAddress
       };
     }
@@ -102,13 +107,13 @@ const Page = () => {
           const userData = userDocSnap.data();
           setTokens(userData.tokens || []);
 
-          // Fetch metadata for all tokens
           const metadataPromises = userData.tokens.map(fetchMetadata);
           const metadata = await Promise.all(metadataPromises);
           setTokenMetadata(metadata.filter(m => m != null));
         }
       } catch (error) {
         console.error('Error fetching tokens:', error);
+        setError('Failed to fetch your tokens. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -119,57 +124,133 @@ const Page = () => {
 
   if (!wallet.publicKey) {
     return (
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-4">Please connect your wallet</h1>
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Connect Your Wallet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Please connect your wallet to view your token collection.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-4">Loading tokens...</h1>
-      </div>
-    );
-  }
-
+  
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">Your Token Collection</h1>
-      {tokenMetadata.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tokenMetadata.map((token) => (
-            <Card key={token.mintAddress} className="overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg">{token.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <img
-                  src={token.image}
-                  alt={token.name}
-                  className="w-full h-48 object-cover rounded-md mb-4"
-                />
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">Symbol: {token.symbol}</p>
-                  <p className="text-sm text-gray-600 truncate">
-                    Mint: {token.mintAddress}
-                  </p>
-                  <button 
-                    onClick={() => handleMint(token.mintAddress)}
-                    className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    Mint Some Tokens
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-600">No tokens found in your collection.</p>
-      )}
+    <div className="flex flex-col min-h-screen">
+            <Header />
+
+    <div className="container mx-auto px-4 py-8">
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold">Your Token Collection</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Connected Wallet: {wallet.publicKey.toBase58().slice(0, 8)}...{wallet.publicKey.toBase58().slice(-8)}
+            </p>
+          </CardContent>
+        </Card>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading your tokens...</span>
+          </div>
+        ) : error ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-red-500">Error</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center text-red-500">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                <p>{error}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : tokenMetadata.length > 0 ? (
+          <AnimatePresence>
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: { transition: { staggerChildren: 0.1 } }
+              }}
+            >
+              {tokenMetadata.map((token) => (
+                <motion.div
+                  key={token.mintAddress}
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0 }
+                  }}
+                >
+                  <Card className="overflow-hidden h-full flex flex-col">
+                    <CardHeader>
+                      <CardTitle className="text-xl">{token.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <img
+                        src={token.image}
+                        alt={token.name}
+                        className="w-full h-48 object-cover rounded-md mb-4"
+                      />
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">Symbol: {token.symbol}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          Description: {token.description || 'No description available'}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          Mint Address: {token.mintAddress}
+                        </p>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button 
+                        onClick={() => handleMint(token.mintAddress)}
+                        className="w-full"
+                      >
+                        <Coins className="mr-2 h-4 w-4" />
+                        Mint Tokens
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>No Tokens Found</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">Your collection is empty. Create a new token to get started!</p>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => router.push('/create-mint')}>
+                Create New Token
+              </Button>
+            </CardFooter>
+          </Card>
+        )}
+      </motion.div>
+    </div>
+    <Footer />
+
     </div>
   );
 };
 
-export default Page;
+export default TokensPage;
+

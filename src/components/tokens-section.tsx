@@ -39,7 +39,7 @@ const TokensSection = () => {
         </div>
         <div className="mt-10 text-center">
           <Button asChild size="lg">
-            <Link href="/tokens">View All Tokens</Link>
+            <Link href="/tokens">View All Your Tokens</Link>
           </Button>
         </div>
       </div>
