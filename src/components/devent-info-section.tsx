@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Wallet, Network, Coins, ArrowRightLeft } from 'lucide-react';
+import { AlertCircle, Wallet, Network, Coins } from 'lucide-react';
 
 const DevnetInfoSection = () => {
   return (

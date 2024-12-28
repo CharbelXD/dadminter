@@ -12,13 +12,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Loader2, Upload } from 'lucide-react'
 import Footer from '@/components/footer'
 import Header from '@/components/header'
-interface TokenMetadata {
-  name: string
-  symbol: string
-  description: string
-  image?: File
-}
-
 const CreateMintPage = () => {
   const [status, setStatus] = useState<string>('')
   const wallet = useWallet()
