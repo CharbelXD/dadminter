@@ -3,6 +3,9 @@ import * as token from "@solana/spl-token";
 
 import { TokenMetadata,pack } from "@solana/spl-token-metadata";
 import { createInitializeMintInstruction } from "@solana/spl-token";
+import { get } from "http";
+import { use } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
 const decimal = 6; // You can change this based on your token's needs
 const connection = new web3.Connection('https://api.devnet.solana.com', 'confirmed');
 const TOKEN_2022_PROGRAM_ID = token.TOKEN_2022_PROGRAM_ID;
@@ -14,17 +17,95 @@ interface MetadataForm{
     description: string;
 }
 
+export async function getOrCreateAssociatedTokenAccount(
+    mint: web3.PublicKey,
+    wallet: any,
+    owner: web3.PublicKey,
+    allowOwnerOffCurve = false,
+    commitment?: web3.Commitment,
+    confirmOptions?: web3.ConfirmOptions,
+    programId = TOKEN_2022_PROGRAM_ID,
+    associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID,
+): Promise<token.Account> {
+    const associatedToken = token.getAssociatedTokenAddressSync(
+        mint,
+        owner,
+        allowOwnerOffCurve,
+        programId,
+        associatedTokenProgramId,
+    );
+
+
+    // This is the optimal logic, considering TX fee, client-side computation, RPC roundtrips and guaranteed idempotent.
+    // Sadly we can't do this atomically.
+    let account: token.Account;
+    try {
+        account = await token.getAccount(connection, associatedToken, commitment, programId);
+        console.log('Account:', account.address.toString());
+        
+    } catch (error: unknown) {
+
+        // TokenAccountNotFoundError can be possible if the associated address has already received some lamports,
+        // becoming a system account. Assuming program derived addressing is safe, this is the only case for the
+        // TokenInvalidAccountOwnerError in this code path.
+        if (error instanceof token.TokenAccountNotFoundError || error instanceof token.TokenInvalidAccountOwnerError) {
+            // As this isn't atomic, it's possible others can create associated accounts meanwhile.
+            try {
+                const transaction = new web3.Transaction().add(
+                    token.createAssociatedTokenAccountInstruction(
+                        wallet.publicKey,
+                        associatedToken,
+                        owner,
+                        mint,
+                        programId,
+                        associatedTokenProgramId,
+                    ),
+                );
+
+                transaction.feePayer = owner;
+                transaction.recentBlockhash = (
+                    await connection.getLatestBlockhash()
+                ).blockhash;
+                // Sign transaction
+                const signature = await wallet.sendTransaction(transaction, connection);
+                console.log('Signature:', signature);
+            } catch (error: unknown) {
+                // Ignore all errors; for now there is no API-compatible way to selectively ignore the expected
+                // instruction error if the associated account exists already.
+                console.error('Error creating associated token account:', error);
+            }
+            // Now this should always succeed
+            account = await token.getAccount(connection, associatedToken, commitment, programId);
+        } else {
+            throw error;
+        }
+    }
+
+  
+
+    return account;
+}
+
+
+
+
+
+
+
+
+
+
+
 export async function createMint(
     { name, symbol,description }: MetadataForm,
     wallet: any,
     uri: string|null,
-    keypair = web3.Keypair.generate(),
     confirmOptions?: web3.ConfirmOptions,
-): Promise<void> {
+): Promise<string> {
 
     if (!wallet.publicKey || !wallet.signTransaction) {
         alert('Please connect your wallet first');
-        return;
+        return "";
     }
     const mintKeypair = web3.Keypair.generate();
 
@@ -107,87 +188,25 @@ export async function createMint(
         transaction.partialSign(mintKeypair);
         const signature = await wallet.sendTransaction(transaction, connection);
 
-        // Confirm transaction
+        // Confirm transaction  
+        const tokenAccount = await getOrCreateAssociatedTokenAccount( mintKeypair.publicKey, wallet, wallet.publicKey);
+        alert(`Token Account created! address: ${tokenAccount.address.toString()}`);
         await connection.confirmTransaction(signature, 'confirmed');
 
         alert(`Token created! Mint address: ${mintKeypair.publicKey.toBase58()}`);
         console.log(`Token created! Mint address: ${mintKeypair.publicKey.toBase58()}`);
+        return mintKeypair.publicKey.toBase58();
     } catch (error) {
         console.error('Error creating token:', error);
+        return "there is a error";
     }
 }
-const mint = new web3.PublicKey("9JDXurJB6DR18giBSfWZez6U5E5mYZnPPgfozwBpLmgt");
+// const mint = new web3.PublicKey("9JDXurJB6DR18giBSfWZez6U5E5mYZnPPgfozwBpLmgt");
 // 9JDXurJB6DR18giBSfWZez6U5E5mYZnPPgfozwBpLmgt
 // Ezm398KUqD1t8rL5BdnUPomgEJ4cJnSFw9nB8V3KUhDW
-export async function getOrCreateAssociatedTokenAccount(
-    wallet: any,
-    owner: web3.PublicKey,
-    allowOwnerOffCurve = false,
-    commitment?: web3.Commitment,
-    confirmOptions?: web3.ConfirmOptions,
-    programId = TOKEN_2022_PROGRAM_ID,
-    associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID,
-): Promise<token.Account> {
-    const associatedToken = token.getAssociatedTokenAddressSync(
-        mint,
-        owner,
-        allowOwnerOffCurve,
-        programId,
-        associatedTokenProgramId,
-    );
-
-    // This is the optimal logic, considering TX fee, client-side computation, RPC roundtrips and guaranteed idempotent.
-    // Sadly we can't do this atomically.
-    let account: token.Account;
-    try {
-        account = await token.getAccount(connection, associatedToken, commitment, programId);
-        console.log('Account:', account);
-    } catch (error: unknown) {
-        // TokenAccountNotFoundError can be possible if the associated address has already received some lamports,
-        // becoming a system account. Assuming program derived addressing is safe, this is the only case for the
-        // TokenInvalidAccountOwnerError in this code path.
-        if (error instanceof token.TokenAccountNotFoundError || error instanceof token.TokenInvalidAccountOwnerError) {
-            // As this isn't atomic, it's possible others can create associated accounts meanwhile.
-            try {
-                const transaction = new web3.Transaction().add(
-                    token.createAssociatedTokenAccountInstruction(
-                        wallet.publicKey,
-                        associatedToken,
-                        owner,
-                        mint,
-                        programId,
-                        associatedTokenProgramId,
-                    ),
-                );
-
-                transaction.feePayer = owner;
-                transaction.recentBlockhash = (
-                    await connection.getLatestBlockhash()
-                ).blockhash;
-
-
-                // Sign transaction
-                const signature = await wallet.sendTransaction(transaction, connection);
-                console.log('Signature:', signature);
-            } catch (error: unknown) {
-                // Ignore all errors; for now there is no API-compatible way to selectively ignore the expected
-                // instruction error if the associated account exists already.
-            }
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Now this should always succeed
-            account = await token.getAccount(connection, associatedToken, commitment, programId);
-        } else {
-            throw error;
-        }
-    }
-
-  
-
-    return account;
-}
 
 export async function mintTo(
+    mint: web3.PublicKey,
     wallet: any, 
     destination: web3.PublicKey,
     authority: web3.Signer | web3.PublicKey,
@@ -195,6 +214,7 @@ export async function mintTo(
     multiSigners: web3.Signer[] = [],
     programId = TOKEN_2022_PROGRAM_ID
   ): Promise<web3.TransactionSignature> {
+
     function getSigners(
       signerOrMultisig: web3.Signer | web3.PublicKey,
       multiSigners: web3.Signer[]

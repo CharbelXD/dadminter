@@ -3,6 +3,8 @@ import React, { useState, ChangeEvent } from 'react';
 import { Connection, PublicKey } from "@solana/web3.js";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { createMint } from '../../../config/solana';
+import { collection, addDoc , doc, getDoc,updateDoc, arrayUnion, setDoc} from "firebase/firestore"; 
+import { db } from '../../../config/firebase';
 
 interface TokenMetadata {
   name: string;
@@ -24,6 +26,7 @@ const Page = () => {
   const [file, setFile] = useState<File>();
   const [url, setUrl] = useState<string>();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [tokenaddress,setTokenaddress]=useState(null);
 
 
 
@@ -125,11 +128,34 @@ const Page = () => {
 
       const response = await uploadMetadata(metadata);
       console.log("Metadata response:", response);
+      const userAddress = wallet.publicKey?.toBase58();
+
       const token = await createMint(
         metadata,
         wallet,
         response
       );
+      
+      
+      console.log("Token created:", token);
+    const userDocRef = doc(collection(db, "tokens"), userAddress);
+    const userDocSnap = await getDoc(userDocRef);
+ 
+    if (userDocSnap.exists()) {
+      // If the document exists, update the tokens array by pushing the new token
+      await updateDoc(userDocRef, {
+        tokens: arrayUnion(token)  // Push the new token to the existing array
+      });
+      setStatus('Token added to your existing record!');
+    } else {
+      // If the document does not exist, create a new one with the tokens array
+      await setDoc(userDocRef, {
+        userAddress: userAddress,
+        tokens: [token],  // Initialize the array with the first token
+      });
+      setStatus('New token record created for user!');
+    }
+
 
       setUploading(false);
       setFormData({
@@ -137,6 +163,9 @@ const Page = () => {
         symbol: "",
         description: "",  
       });
+      setFile(undefined);
+      setImagePreview(null);
+    
     }}
     catch (error) {
       if (error instanceof Error) {
@@ -162,7 +191,7 @@ const Page = () => {
             value={formData.name}
             onChange={handleInputChange}
             className="w-full p-2 border rounded"
-            required
+            
           />
         </div>
 
@@ -174,7 +203,7 @@ const Page = () => {
             value={formData.symbol}
             onChange={handleInputChange}
             className="w-full p-2 border rounded"
-            required
+            
           />
         </div>
 
@@ -186,7 +215,6 @@ const Page = () => {
             onChange={handleInputChange}
             className="w-full p-2 border rounded"
             rows={4}
-            required
           />
         </div>
 
