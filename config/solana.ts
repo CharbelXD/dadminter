@@ -188,9 +188,9 @@ export async function createMint(
         transaction.partialSign(mintKeypair);
         const signature = await wallet.sendTransaction(transaction, connection);
 
-        // Confirm transaction  
-        const tokenAccount = await getOrCreateAssociatedTokenAccount( mintKeypair.publicKey, wallet, wallet.publicKey);
-        alert(`Token Account created! address: ${tokenAccount.address.toString()}`);
+        // // Confirm transaction  
+        // const tokenAccount = await getOrCreateAssociatedTokenAccount( mintKeypair.publicKey, wallet, wallet.publicKey);
+        // alert(`Token Account created! address: ${tokenAccount.address.toString()}`);
         await connection.confirmTransaction(signature, 'confirmed');
 
         alert(`Token created! Mint address: ${mintKeypair.publicKey.toBase58()}`);

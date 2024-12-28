@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Coins, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, Coins, AlertCircle } from 'lucide-react';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import TokenInfoSection from '@/components/token-info';
@@ -77,9 +77,9 @@ const MintTokens = () => {
 
             setStatus({ type: 'success', message: `Successfully minted ${amount} tokens to ${wallet.publicKey.toBase58()}` });
             setMintAmount('');
-        } catch (error: any) {
+        } catch (error:unknown) {
             console.error('Error minting tokens:', error);
-            setStatus({ type: 'error', message: error.message || 'Failed to mint tokens' });
+            setStatus({ type: 'error', message: error instanceof Error ? error.message : 'Failed to mint tokens' });
         } finally {
             setLoading(false);
         }

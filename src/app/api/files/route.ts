@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
     const pinjob = await pinata
       .pinJobs()
       .cid(`${uploadData.IpfsHash}`)
+      console.log(pinjob);
 
 
     return NextResponse.json(url, { status: 200 });

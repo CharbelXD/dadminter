@@ -136,6 +136,7 @@ const TokensPage = () => {
       </div>
     );
   }
+  console.log(tokens);
 
   
   return (

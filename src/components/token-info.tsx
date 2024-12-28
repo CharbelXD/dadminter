@@ -15,7 +15,7 @@ const TokenInfoSection = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              This token follows Solana's SPL Token standard, ensuring compatibility
+              This token follows Solana&#39;s SPL Token standard, ensuring compatibility
               with wallets and exchanges. All minting operations are secured through
               on-chain verification.
             </p>
@@ -37,7 +37,6 @@ const TokenInfoSection = () => {
           </CardContent>
         </Card>
       </div>
-
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="text-xl font-semibold flex items-center">

@@ -16,7 +16,7 @@ const DevnetInfoSection = () => {
           <CardContent>
             <p className="text-sm text-muted-foreground">
               Solana Devnet is a test network designed for developers to experiment
-              and build applications without using real tokens. It's perfect for
+              and build applications without using real tokens. It&#39;s perfect for
               testing and development purposes.
             </p>
           </CardContent>
@@ -59,17 +59,6 @@ const DevnetInfoSection = () => {
                 </p>
               </div>
             </div>
-            {/* <div className="flex items-start space-x-3">
-              <ArrowRightLeft className="h-5 w-5 text-primary mt-1" />
-              <div>
-                <h4 className="font-medium">Network Differences</h4>
-                <p className="text-sm text-muted-foreground">
-                  Devnet transactions are processed faster and have different
-                  resource costs compared to mainnet. Always test thoroughly before
-                  deploying to mainnet where real SOL tokens are used.
-                </p>
-              </div>
-            </div> */}
           </div>
         </CardContent>
       </Card>

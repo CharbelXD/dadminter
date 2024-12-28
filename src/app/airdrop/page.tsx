@@ -10,6 +10,20 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import DevnetInfoSection from "@/components/devent-info-section";
 
+// Move this outside the component
+const connection = new Connection("https://api.devnet.solana.com");
+
+async function getBalance(pubKey: string) {
+  try {
+    const publicKeyObject = new PublicKey(pubKey);
+    const balance = await connection.getBalance(publicKeyObject);
+    return balance / 1e9;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 function SolAirdrop() {
   const [solanaPublicKey, setSolanaPublicKey] = useState("");
   const [txHash, setTxHash] = useState("");
@@ -18,21 +32,9 @@ function SolAirdrop() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const connection = new Connection("https://api.devnet.solana.com");
-
-  const getBalance = async (pubKey: string) => {
-    try {
-      const publicKeyObject = new PublicKey(pubKey);
-      const balance = await connection.getBalance(publicKeyObject);
-      setBalance(balance / 1e9);
-    } catch (err) {
-      setBalance(null);
-    }
-  };
-
   useEffect(() => {
     if (solanaPublicKey.length === 44) {
-      getBalance(solanaPublicKey);
+      getBalance(solanaPublicKey).then(setBalance);
     } else {
       setBalance(null);
     }
@@ -51,8 +53,10 @@ function SolAirdrop() {
       setIsAirdropped(true);
       
       await connection.confirmTransaction(txhash);
-      await getBalance(solanaPublicKey);
+      const updatedBalance = await getBalance(solanaPublicKey);
+      setBalance(updatedBalance);
     } catch (err) {
+      console.error(err);
       setError("Invalid Solana address or airdrop failed. Please try again.");
     } finally {
       setLoading(false);
@@ -71,7 +75,7 @@ function SolAirdrop() {
             <CardDescription>Request test SOL tokens for development purposes</CardDescription>
           </CardHeader>
           <CardContent>
-            <Alert  className="mb-6">
+            <Alert className="mb-6">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 This tool only works on Devnet and does <strong>NOT</strong> provide real $SOL tokens.
