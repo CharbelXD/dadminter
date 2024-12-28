@@ -2,6 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  
 };
-
+module.exports = {
+  env: {
+PINATA_GATEWAY_URL: "gold-cheap-horse-272.mypinata.cloud",
+PINATA_API_Key: "2f0deb08a0ed70d04c7f",
+PINATA_API_Secret: "f0a9c7b3204f449349b550b142653c3ea4e89b8fe7d06b9a99e1887a27a1ceb1",
+PINATA_JWT: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5MjgxNTJiNC00MDlhLTRkZTYtOWI5Mi05ZDExMmVlYjljYmQiLCJlbWFpbCI6ImphbmFuLmthcnVyQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiIyZjBkZWIwOGEwZWQ3MGQwNGM3ZiIsInNjb3BlZEtleVNlY3JldCI6ImYwYTljN2IzMjA0ZjQ0OTM0OWI1NTBiMTQyNjUzYzNlYTRlODliOGZlN2QwNmI5YTk5ZTE4ODdhMjdhMWNlYjEiLCJleHAiOjE3NjY0MTYxNzF9.BRp_VfGgw8l3pVSD1qR56YVV5XzitXJigGpZopqj2Zg ",
+}}
 export default nextConfig;
