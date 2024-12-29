@@ -23,16 +23,26 @@ const MintTokens = () => {
     const { publicKey, sendTransaction } = useWallet();
     const { connection } = useConnection();
     const [mintAmount, setMintAmount] = useState('');
+    const [destinationAddress, setDestinationAddress] = useState('');
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
     const wallet = useWallet();
 
+    // Update destination address when wallet connects
     useEffect(() => {
-        if (status.type) {
-            const timer = setTimeout(() => setStatus({ type: null, message: '' }), 5000);
-            return () => clearTimeout(timer);
+        if (wallet.publicKey) {
+            setDestinationAddress(wallet.publicKey.toBase58());
+        } else {
+            setDestinationAddress('');
         }
-    }, [status]);
+    }, [wallet.publicKey]);
+
+    // useEffect(() => {
+    //     if (status.type) {
+    //         const timer = setTimeout(() => setStatus({ type: null, message: '' }), 5000);
+    //         return () => clearTimeout(timer);
+    //     }
+    // }, [status]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -48,10 +58,19 @@ const MintTokens = () => {
                 throw new Error('Wallet not connected');
             }
 
+            // Determine destination address - use input if provided, otherwise use connected wallet
+            let destinationPublicKey;
+            try {
+                destinationPublicKey = new PublicKey(destinationAddress);
+            } catch (error) {
+                console.error('Error parsing destination address:', error);
+                throw new Error('Invalid destination address');
+            }
+
             const associatedTokenAccount = await getOrCreateAssociatedTokenAccount(
                 new PublicKey(mintAddress),
                 wallet,
-                wallet.publicKey,
+                destinationPublicKey,
             );
             
             const amount = parseInt(mintAmount);
@@ -66,7 +85,7 @@ const MintTokens = () => {
                     sendTransaction,
                 },
                 associatedTokenAccount,
-                publicKey,
+                wallet.publicKey,
                 amount,
             );
             
@@ -75,8 +94,9 @@ const MintTokens = () => {
                 throw new Error('Transaction failed to confirm');
             }
 
-            setStatus({ type: 'success', message: `Successfully minted ${amount} tokens to ${wallet.publicKey.toBase58()}` });
+            setStatus({ type: 'success', message: `Successfully minted ${amount} tokens to ${destinationPublicKey.toBase58()}` });
             setMintAmount('');
+            
         } catch (error:unknown) {
             console.error('Error minting tokens:', error);
             setStatus({ type: 'error', message: error instanceof Error ? error.message : 'Failed to mint tokens' });
@@ -106,6 +126,20 @@ const MintTokens = () => {
                         <p className="font-mono text-sm break-all text-secondary-foreground">{mintAddress}</p>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="destinationAddress">Destination Address:</Label>
+                            <Input
+                                type="text"
+                                id="destinationAddress"
+                                value={destinationAddress}
+                                onChange={(e) => setDestinationAddress(e.target.value)}
+                                placeholder="Enter destination address"
+                                disabled={loading}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                Your connected wallet address is shown by default. You can modify it to mint to a different address.
+                            </p>
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="mintAmount">Amount to Mint:</Label>
                             <Input
@@ -164,4 +198,3 @@ const MintTokens = () => {
 };
 
 export default MintTokens;
-

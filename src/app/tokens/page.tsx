@@ -57,6 +57,7 @@ const TokensPage = () => {
         'confirmed',
         TOKEN_2022_PROGRAM_ID,
       );
+      console.log(metadata);
       
       if (metadata && metadata.uri) {
         const fullMetadata = await fetchMetadataFromUri(metadata.uri);

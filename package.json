@@ -12,6 +12,7 @@
     "@metaplex-foundation/mpl-token-metadata": "^2.13.0",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.1",
+    "@radix-ui/react-switch": "^1.1.2",
     "@solana/spl-token": "^0.4.9",
     "@solana/spl-token-metadata": "^0.1.6",
     "@solana/wallet-adapter-base": "^0.9.23",

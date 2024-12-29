@@ -1,11 +1,10 @@
 'use client'
 import React, { useState, ChangeEvent } from 'react';
-import { Connection, PublicKey } from "@solana/web3.js";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { createMint } from '../../../config/solana';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
-import { collection, addDoc , doc, getDoc,updateDoc, arrayUnion, setDoc} from "firebase/firestore"; 
+import { collection , doc, getDoc,updateDoc, arrayUnion, setDoc} from "firebase/firestore"; 
 import { db } from '../../../config/firebase';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
@@ -17,12 +16,6 @@ import { Button } from "@/components/ui/button"
 import { Loader2, Upload } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-interface TokenMetadata {
-  name: string;
-  symbol: string;
-  description: string;
-  image?: File;
-}
 
 const Page = () => {
   const [status, setStatus] = useState<string>('');
@@ -35,13 +28,7 @@ const Page = () => {
   const [uploading, setUploading] = useState(false);
 
   const [file, setFile] = useState<File>();
-  const [url, setUrl] = useState<string>();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [tokenaddress,setTokenaddress]=useState(null);
-
-
-
-  const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -78,7 +65,6 @@ const Page = () => {
         body: data,
       });
       const signedUrl = await uploadRequest.json();
-      setUrl(signedUrl);
       return signedUrl;
     } catch (e) {
       console.log(e);

@@ -3,9 +3,6 @@ import * as token from "@solana/spl-token";
 
 import { TokenMetadata,pack } from "@solana/spl-token-metadata";
 import { createInitializeMintInstruction } from "@solana/spl-token";
-import { get } from "http";
-import { use } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 const decimal = 6; // You can change this based on your token's needs
 const connection = new web3.Connection('https://api.devnet.solana.com', 'confirmed');
 const TOKEN_2022_PROGRAM_ID = token.TOKEN_2022_PROGRAM_ID;
@@ -63,7 +60,7 @@ export async function getOrCreateAssociatedTokenAccount(
                     ),
                 );
 
-                transaction.feePayer = owner;
+                transaction.feePayer = wallet.publicKey;
                 transaction.recentBlockhash = (
                     await connection.getLatestBlockhash()
                 ).blockhash;
@@ -109,6 +106,7 @@ export async function createMint(
     { name, symbol,description }: MetadataForm,
     wallet: any,
     uri: string|null,
+    
     confirmOptions?: web3.ConfirmOptions,
 ): Promise<string> {
 
