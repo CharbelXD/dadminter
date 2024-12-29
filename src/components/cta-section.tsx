@@ -21,11 +21,15 @@ const CtaSection = () => {
             Join thousands of projects already using our platform to create and manage their tokens.
           </p>
           <div className="mt-8 flex justify-center">
+          <Button asChild size="lg" variant="secondary" className="mr-4">
+              <Link href="/airdrop">Get Airdrop</Link>
+            </Button>
             <Button asChild size="lg" variant="secondary" className="mr-4">
               <Link href="/create-mint">Create Token</Link>
             </Button>
-            <Button asChild size="lg" variant="secondary" className="mr-4">
-              <Link href="/airdrop">Get Airdrop</Link>
+
+            <Button asChild size="lg" variant="secondary">
+              <Link href="">Liquidity Pool (soon)</Link>
             </Button>
           </div>
         </motion.div>
