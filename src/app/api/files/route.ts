@@ -5,7 +5,6 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.formData();
     const file: File | null = data.get("file") as unknown as File;
-    console.log(file);
 
     const uploadData = await pinata.upload
       .file(file)
@@ -32,3 +31,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }   
+export async function GET(request: NextRequest) {
+  console.log(process.env.PINATA_GATEWAY_URL);
+  return NextResponse.json({ message: "Hello World" });
+}
