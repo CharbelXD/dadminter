@@ -2,8 +2,9 @@ import * as web3 from "@solana/web3.js";
 import * as token from "@solana/spl-token";
 
 import { TokenMetadata,pack } from "@solana/spl-token-metadata";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { createInitializeMintInstruction } from "@solana/spl-token";
-const decimal = 6; // You can change this based on your token's needs
+const decimal = 9; // You can change this based on your token's needs
 const connection = new web3.Connection('https://api.devnet.solana.com', 'confirmed');
 const TOKEN_2022_PROGRAM_ID = token.TOKEN_2022_PROGRAM_ID;
 const ASSOCIATED_TOKEN_PROGRAM_ID = token.ASSOCIATED_TOKEN_PROGRAM_ID;
@@ -237,7 +238,7 @@ export async function mintTo(
       mint,
       destination,
       authorityPublicKey,
-      amount,
+      Number(amount) * LAMPORTS_PER_SOL,
       multiSigners,
       programId
     );
