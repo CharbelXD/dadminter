@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "DAD MINTER - Create and Manage Solana Tokens",
   description:
-    "Launch your own Solana token with ease using SolanaLauncher. Create, mint, and manage tokens on the Solana blockchain.",
+    "Launch your own Solana token with ease using DAD MINTER. Create, mint, and manage tokens on the Solana blockchain.",
 };
 
 export default function RootLayout({
