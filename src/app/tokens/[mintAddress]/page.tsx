@@ -1,259 +1,200 @@
-'use client';
+'use client'
 
-import React, { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { mintTo, getOrCreateAssociatedTokenAccount } from '../../../../config/solana';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Connection, PublicKey } from '@solana/web3.js';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { db } from '../../../config/firebase';
-import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
-import { getTokenMetadata } from '@solana/spl-token';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useConnection } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
+import { useParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, Coins, AlertCircle } from 'lucide-react';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import { Loader2, Coins, AlertCircle } from 'lucide-react';
+import TokenInfoSection from '@/components/token-info';
 
-interface TokenMetadata {
-  name: string;
-  symbol: string;
-  image: string;
-  description: string;
-  mintAddress: string;
-}
+const MintTokens = () => {
+    const params = useParams();
+    const mintAddress = params.mintAddress as string;
+    const { publicKey, sendTransaction } = useWallet();
+    const { connection } = useConnection();
+    const [mintAmount, setMintAmount] = useState('');
+    const [destinationAddress, setDestinationAddress] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
+    const wallet = useWallet();
 
-const TokensPage = () => {
-  const wallet = useWallet();
-  const router = useRouter();
-  const [tokens, setTokens] = useState<string[]>([]);
-  const [tokenMetadata, setTokenMetadata] = useState<TokenMetadata[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    // Update destination address when wallet connects
+    useEffect(() => {
+        if (wallet.publicKey) {
+            setDestinationAddress(wallet.publicKey.toBase58());
+        } else {
+            setDestinationAddress('');
+        }
+    }, [wallet.publicKey]);
 
-  const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+    // useEffect(() => {
+    //     if (status.type) {
+    //         const timer = setTimeout(() => setStatus({ type: null, message: '' }), 5000);
+    //         return () => clearTimeout(timer);
+    //     }
+    // }, [status]);
 
-  const handleMint = (mintAddress: string) => {
-    router.push(`/tokens/${mintAddress}`);
-  };
-
-  const fetchMetadataFromUri = async (uri: string) => {
-    try {
-      const response = await fetch(uri);
-      const metadata = await response.json();
-      return metadata;
-    } catch (error) {
-      console.error('Error fetching metadata from URI:', error);
-      return null;
-    }
-  };
-
-  const fetchMetadata = async (mintAddress: string) => {
-    try {
-      const mintPubkey = new PublicKey(mintAddress);
-      const metadata = await getTokenMetadata(
-        connection,
-        mintPubkey,
-        'confirmed',
-        TOKEN_2022_PROGRAM_ID,
-      );
-      console.log(metadata);
-      
-      if (metadata && metadata.uri) {
-        const fullMetadata = await fetchMetadataFromUri(metadata.uri);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         
-        if (fullMetadata) {
-          return {
-            name: metadata.name || 'Unknown',
-            symbol: metadata.symbol || 'Unknown',
-            image: fullMetadata.image || '/placeholder.svg?height=200&width=200',
-            description: fullMetadata.description || '',
-            mintAddress
-          };
+        if (!publicKey) {
+            setStatus({ type: 'error', message: 'Please connect your wallet' });
+            return;
         }
-      }
-      
-      return {
-        name: metadata?.name || 'Unknown',
-        symbol: metadata?.symbol || 'Unknown',
-        image: '/placeholder.svg?height=200&width=200',
-        description: '',
-        mintAddress
-      };
-    } catch (error) {
-      console.error('Error fetching metadata for token:', mintAddress, error);
-      return {
-        name: 'Unknown Token',
-        symbol: 'Unknown',
-        image: '/placeholder.svg?height=200&width=200',
-        description: '',
-        mintAddress
-      };
-    }
-  };
 
-  useEffect(() => {
-    const fetchTokens = async () => {
-      if (!wallet.publicKey) {
-        setLoading(false);
-        return;
-      }
+        try {
+            setLoading(true);
+            if (!wallet.publicKey) {
+                throw new Error('Wallet not connected');
+            }
 
-      try {
-        const userAddress = wallet.publicKey.toBase58();
-        const userDocRef = doc(db, 'tokens', userAddress);
-        const userDocSnap = await getDoc(userDocRef);
+            // Determine destination address - use input if provided, otherwise use connected wallet
+            let destinationPublicKey;
+            try {
+                destinationPublicKey = new PublicKey(destinationAddress);
+            } catch (error) {
+                console.error('Error parsing destination address:', error);
+                throw new Error('Invalid destination address');
+            }
 
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          setTokens(userData.tokens || []);
+            const associatedTokenAccount = await getOrCreateAssociatedTokenAccount(
+                new PublicKey(mintAddress),
+                wallet,
+                destinationPublicKey,
+            );
+            
+            const amount = parseInt(mintAmount);
+            if (isNaN(amount) || amount <= 0) {
+                throw new Error('Please enter a valid amount');
+            }
 
-          const metadataPromises = userData.tokens.map(fetchMetadata);
-          const metadata = await Promise.all(metadataPromises);
-          setTokenMetadata(metadata.filter(m => m != null));
+            const signature = await mintTo(
+                new PublicKey(mintAddress),
+                {
+                    publicKey,
+                    sendTransaction,
+                },
+                associatedTokenAccount,
+                wallet.publicKey,
+                amount,
+            );
+            
+            const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+            if (confirmation.value.err) {
+                throw new Error('Transaction failed to confirm');
+            }
+
+            setStatus({ type: 'success', message: `Successfully minted ${amount} tokens to ${destinationPublicKey.toBase58()}` });
+            setMintAmount('');
+            
+        } catch (error:unknown) {
+            console.error('Error minting tokens:', error);
+            setStatus({ type: 'error', message: error instanceof Error ? error.message : 'Failed to mint tokens' });
+        } finally {
+            setLoading(false);
         }
-      } catch (error) {
-        console.error('Error fetching tokens:', error);
-        setError('Failed to fetch your tokens. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
     };
 
-    fetchTokens();
-  }, [wallet.publicKey]);
-
-  if (!wallet.publicKey) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Header />
-        <Card>
-          <CardHeader>
-            <CardTitle>Connect Your Wallet</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Please connect your wallet to view your token collection.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  console.log(tokens);
-
-  
-  return (
-    <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen">
             <Header />
-
-    <div className="container mx-auto px-4 py-8">
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold">Your Token Collection</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Connected Wallet: {wallet.publicKey.toBase58().slice(0, 8)}...{wallet.publicKey.toBase58().slice(-8)}
-            </p>
-          </CardContent>
-        </Card>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-2">Loading your tokens...</span>
-          </div>
-        ) : error ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-red-500">Error</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center text-red-500">
-                <AlertCircle className="h-5 w-5 mr-2" />
-                <p>{error}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : tokenMetadata.length > 0 ? (
-          <AnimatePresence>
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                visible: { transition: { staggerChildren: 0.1 } }
-              }}
-            >
-              {tokenMetadata.map((token) => (
-                <motion.div
-                  key={token.mintAddress}
-                  variants={{
-                    hidden: { opacity: 0, y: 20 },
-                    visible: { opacity: 1, y: 0 }
-                  }}
-                >
-                  <Card className="overflow-hidden h-full flex flex-col">
-                    <CardHeader>
-                      <CardTitle className="text-xl">{token.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                      <img
-                        src={token.image}
-                        alt={token.name}
-                        className="w-full h-48 object-cover rounded-md mb-4"
-                      />
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">Symbol: {token.symbol}</p>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          Description: {token.description || 'No description available'}
-                        </p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          Mint Address: {token.mintAddress}
-                        </p>
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button 
-                        onClick={() => handleMint(token.mintAddress)}
+            <TokenInfoSection/>
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="container mx-auto px-4 py-8 max-w-md"
+        >
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-2xl font-bold">Mint Tokens</CardTitle>
+                    <CardDescription>Create new tokens for the selected mint address</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="mb-6 p-3 bg-secondary/50 rounded-lg">
+                        <Label className="text-sm font-medium text-secondary-foreground">Token Mint Address:</Label>
+                        <p className="font-mono text-sm break-all text-secondary-foreground">{mintAddress}</p>
+                    </div>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="destinationAddress">Destination Address:</Label>
+                            <Input
+                                type="text"
+                                id="destinationAddress"
+                                value={destinationAddress}
+                                onChange={(e) => setDestinationAddress(e.target.value)}
+                                placeholder="Enter destination address"
+                                disabled={loading}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                Your connected wallet address is shown by default. You can modify it to mint to a different address.
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="mintAmount">Amount to Mint:</Label>
+                            <Input
+                                type="number"
+                                id="mintAmount"
+                                value={mintAmount}
+                                onChange={(e) => setMintAmount(e.target.value)}
+                                placeholder="Enter mint amount"
+                                required
+                                min="1"
+                                disabled={loading}
+                            />
+                        </div>
+                    </form>
+                </CardContent>
+                <CardFooter>
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={loading || !publicKey}
                         className="w-full"
-                      >
-                        <Coins className="mr-2 h-4 w-4" />
-                        Mint Tokens
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>No Tokens Found</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Your collection is empty. Create a new token to get started!</p>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={() => router.push('/create-mint')}>
-                Create New Token
-              </Button>
-            </CardFooter>
-          </Card>
-        )}
-      </motion.div>
-    </div>
-    <Footer />
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                            </>
+                        ) : (
+                            <>
+                                <Coins className="mr-2 h-4 w-4" />
+                                Mint Tokens
+                            </>
+                        )}
+                    </Button>
+                </CardFooter>
+            </Card>
 
-    </div>
-  );
+            {status.type && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-4"
+                >
+                    <Alert variant={status.type === 'error' ? 'destructive' : 'default'}>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>{status.type === 'error' ? 'Error' : 'Success'}</AlertTitle>
+                        <AlertDescription>{status.message}</AlertDescription>
+                    </Alert>
+                </motion.div>
+            )}
+        </motion.div>
+        <Footer />
+        </div>
+    );
 };
 
-export default TokensPage;
-
+export default MintTokens;
