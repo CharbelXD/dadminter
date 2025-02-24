@@ -41,7 +41,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} SolanaLaunch. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} DAD MINTER. All rights reserved.</p>
         </div>
       </div>
     </motion.footer>
