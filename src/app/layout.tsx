@@ -7,7 +7,7 @@ import ClientOnly from "../components/client-only"; // ✅ Import the new Client
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SolanaLauncher - Create and Manage Solana Tokens",
+  title: "DAD MINTER - Create and Manage Solana Tokens",
   description:
     "Launch your own Solana token with ease using SolanaLauncher. Create, mint, and manage tokens on the Solana blockchain.",
 };
