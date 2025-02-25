@@ -3,6 +3,7 @@ import Footer from '@/components/footer'
 import HeroSection from '@/components/hero-section'
 import FeaturesSection from '@/components/features-section'
 import CtaSection from '@/components/cta-section'
+import RevokeAuthorityPage from "@/components/revoke-auth";
 import TokensSection from '@/components/tokens-section'
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
       <main className="flex-grow">
         <HeroSection />
         <FeaturesSection />
+        <RevokeAuthorityPage />;
         <TokensSection />
         <CtaSection />
       </main>
