@@ -30,7 +30,7 @@ const CtaSection = () => {
               <Link href="/create-mint">Create Token</Link>
             </Button>
             <Button asChild size="lg" variant="secondary">
-              <Link href="">Liquidity Pool (soon)</Link>
+              <Link href="/revoke">Revoke Authorities</Link>
             </Button>
           </div>
         </motion.div>
