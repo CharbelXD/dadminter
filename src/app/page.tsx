@@ -12,7 +12,6 @@ export default function Home() {
       <main className="flex-grow">
         <HeroSection />
         <FeaturesSection />
-        <RevokeAuthorityPage />;
         <TokensSection />
         <CtaSection />
       </main>
