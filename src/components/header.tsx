@@ -33,6 +33,7 @@ const Header = () => {
           <Link href="/airdrop">Airdrop</Link>
           <Link href="/create-mint">Create Mint</Link>
           <Link href="/tokens">Tokens</Link>
+          <Link href="/revoke">Revoke Authorities</Link>
         </nav>
 
         {/* Wallet & CTA Buttons (Visible on Desktop) */}
@@ -61,6 +62,7 @@ const Header = () => {
             <Link href="/create-mint" onClick={() => setIsMenuOpen(false)}>Create Mint</Link>
             <Link href="/tokens" onClick={() => setIsMenuOpen(false)}>Tokens</Link>
             <Link href="/mint" onClick={() => setIsMenuOpen(false)}>Mint Tokens</Link>
+            <Link href="/revoke" onClick={() => setIsMenuOpen(false)}>Revoke Authorities </Link>
 
             {/* Wallet Buttons (Inside the Mobile Menu Background) */}
             <div className="mt-4 flex flex-col space-y-4 bg-background p-4 rounded-lg shadow-md">
