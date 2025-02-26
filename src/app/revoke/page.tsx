@@ -7,7 +7,11 @@ import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
 import { getMint, createSetAuthorityInstruction, AuthorityType, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../config/firebase";
-
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion } from 'framer-motion'
+import { Loader2 } from 'lucide-react'
 
 const REVOKE_FEE_LAMPORTS = 0.05 * 10 ** 9; // 0.05 SOL in lamports
 const ADMIN_WALLET = new PublicKey("RoyUSr7Av36ovVo52df44Humg1c9Mi3ULhjVanTtJN5"); // Replace with your receiving wallet
@@ -122,46 +126,87 @@ const RevokeAuthorityPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold text-center">Revoke Token Authority</h1>
-      {!connected ? (
-        <p className="text-center mt-4">Please connect your wallet to manage token authorities.</p>
-      ) : (
-        <div className="mt-6">
-          <label className="block text-lg font-medium">Select Your Token:</label>
-          <select
-            className="w-full mt-2 p-2 border rounded-md"
-            onChange={(e) => {
-              setSelectedToken(new PublicKey(e.target.value));
-              setFreezeRevoked(false); // Reset freeze state when selecting a new token
-            }}
-            value={selectedToken?.toBase58() || ""}
-          >
-            <option value="" disabled>Select a token</option>
-            {tokens.map((token) => (
-              <option key={token.toBase58()} value={token.toBase58()}>{token.toBase58()}</option>
-            ))}
-          </select>
+    <div className="flex flex-col min-h-screen">
+      {/* Header */}
+      <Header />
 
-          <div className="flex flex-col gap-4 mt-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-8 flex-grow"
+      >
+        <Card className="w-full max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold text-center">Revoke Token Authority</CardTitle>
+            <CardDescription className="text-center">
+              Select your token and revoke the required authorities.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!connected ? (
+              <p className="text-center mt-4 text-muted-foreground">
+                Please connect your wallet to manage token authorities.
+              </p>
+            ) : (
+              <form className="space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-lg font-medium">Select Your Token:</label>
+                  <select
+                    className="w-full mt-2 p-2 border rounded-md bg-gray-900 text-white"
+                    onChange={(e) => {
+                      setSelectedToken(new PublicKey(e.target.value));
+                      setFreezeRevoked(false); // Reset freeze state when selecting a new token
+                    }}
+                    value={selectedToken?.toBase58() || ""}
+                  >
+                    <option value="" disabled>Select a token</option>
+                    {tokens.map((token) => (
+                      <option key={token.toBase58()} value={token.toBase58()}>{token.toBase58()}</option>
+                    ))}
+                  </select>
+                </div>
+              </form>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
             <Button
               onClick={() => handleRevokeAuthority(AuthorityType.FreezeAccount)}
               disabled={!selectedToken || loading}
-              className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-md"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-md flex items-center gap-2 w-full"
             >
-              {loading ? "Processing..." : "Revoke Freeze Authority (0.05 SOL)"}
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Revoke Freeze Authority (0.05 SOL)"
+              )}
             </Button>
 
             <Button
               onClick={() => handleRevokeAuthority(AuthorityType.MintTokens)}
               disabled={!freezeRevoked || !selectedToken || loading}
-              className={`p-3 rounded-md ${freezeRevoked ? "bg-red-500 hover:bg-red-600 text-white" : "bg-gray-400 text-gray-200 cursor-not-allowed"}`}
+              className={`px-6 py-3 rounded-md flex items-center gap-2 w-full ${
+                freezeRevoked ? "bg-red-500 hover:bg-red-600 text-white" : "bg-gray-400 text-gray-200 cursor-not-allowed"
+              }`}
             >
-              {loading ? "Processing..." : "Revoke Mint Authority (0.05 SOL)"}
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Revoke Mint Authority (0.05 SOL)"
+              )}
             </Button>
-          </div>
-        </div>
-      )}
+          </CardFooter>
+        </Card>
+      </motion.div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
