@@ -1,9 +1,14 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { FaTwitter, FaDiscord, FaGithub } from 'react-icons/fa'
+import { FaTwitter, FaTelegram } from 'react-icons/fa'
 
-const Footer = () => {  
+const Footer = () => {
+  const socialLinks = [
+    { Icon: FaTwitter, url: "https://x.com/MinterDadSolana" },
+    { Icon: FaTelegram, url: "https://t.me/DADminterSolanaChat" },
+  ]
+
   return (
     <motion.footer
       initial={{ opacity: 0 }}
@@ -20,7 +25,7 @@ const Footer = () => {
           <div className="w-full md:w-1/3 mb-6 md:mb-0">
             <h4 className="text-lg font-semibold mb-2">Quick Links</h4>
             <ul className="space-y-2">
-              {['Airdrop', 'Create-Mint', 'Tokens'].map((item) => (
+              {['Airdrop', 'Create-Mint', 'Tokens', 'Revoke'].map((item) => (
                 <li key={item}>
                   <a href={`/${item.toLowerCase().replace(' ', '')}`} className="text-gray-400 hover:text-white transition duration-300">
                     {item}
@@ -32,8 +37,14 @@ const Footer = () => {
           <div className="w-full md:w-1/3">
             <h4 className="text-lg font-semibold mb-2">Connect With Us</h4>
             <div className="flex space-x-4">
-              {[FaTwitter, FaDiscord, FaGithub].map((Icon, index) => (
-                <a key={index} href="#" className="text-gray-400 hover:text-white transition duration-300">
+              {socialLinks.map(({ Icon, url }, index) => (
+                <a 
+                  key={index} 
+                  href={url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-gray-400 hover:text-white transition duration-300"
+                >
                   <Icon size={24} />
                 </a>
               ))}
@@ -49,4 +60,3 @@ const Footer = () => {
 }
 
 export default Footer
-
