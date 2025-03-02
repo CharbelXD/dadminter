@@ -31,9 +31,10 @@ const Header = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           <Link href="/airdrop">Airdrop</Link>
-          <Link href="/create-mint">Create Mint</Link>
-          <Link href="/tokens">Tokens</Link>
+          <Link href="/create-mint">Create Token</Link>
+          <Link href="/tokens">My Tokens</Link>
           <Link href="/revoke">Revoke Authorities</Link>
+          <Link href="/nft">Mint NFT</Link>
         </nav>
 
         {/* Wallet & CTA Buttons (Visible on Desktop) */}
@@ -61,7 +62,7 @@ const Header = () => {
             <Link href="/airdrop" onClick={() => setIsMenuOpen(false)}>Airdrop</Link>
             <Link href="/create-mint" onClick={() => setIsMenuOpen(false)}>Create Mint</Link>
             <Link href="/tokens" onClick={() => setIsMenuOpen(false)}>Tokens</Link>
-            <Link href="/mint" onClick={() => setIsMenuOpen(false)}>Mint Tokens</Link>
+            <Link href="/nft" onClick={() => setIsMenuOpen(false)}>Mint NFT</Link>
             <Link href="/revoke" onClick={() => setIsMenuOpen(false)}>Revoke Authorities </Link>
 
             {/* Wallet Buttons (Inside the Mobile Menu Background) */}
