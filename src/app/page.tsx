@@ -4,6 +4,7 @@ import HeroSection from '@/components/hero-section'
 import FeaturesSection from '@/components/features-section'
 import CtaSection from '@/components/cta-section'
 import TokensSection from '@/components/tokens-section'
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -11,8 +12,8 @@ export default function Home() {
       <main className="flex-grow">
         <HeroSection />
         <FeaturesSection />
-        <TokensSection />
         <CtaSection />
+        <TokensSection />
       </main>
       <Footer />
     </div>
