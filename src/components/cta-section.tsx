@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 const CtaSection = () => {
   return (
-    <section className="py-20 sm:py-32 bg-primary text-primary-foreground">
+    <section className="relative bg-[#1a1a2e] text-primary-foreground pb-10 pt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div 
           className="text-center"
