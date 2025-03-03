@@ -60,8 +60,8 @@ const Header = () => {
         <div className="absolute top-16 left-0 right-0 bg-background border-b border-border/40 md:hidden h-auto max-h-screen overflow-y-auto z-40">
           <nav className="flex flex-col space-y-4 p-4">
             <Link href="/airdrop" onClick={() => setIsMenuOpen(false)}>Airdrop</Link>
-            <Link href="/create-mint" onClick={() => setIsMenuOpen(false)}>Create Mint</Link>
-            <Link href="/tokens" onClick={() => setIsMenuOpen(false)}>Tokens</Link>
+            <Link href="/create-mint" onClick={() => setIsMenuOpen(false)}>Create Token</Link>
+            <Link href="/tokens" onClick={() => setIsMenuOpen(false)}>My Tokens</Link>
             <Link href="/nft" onClick={() => setIsMenuOpen(false)}>Mint NFT</Link>
             <Link href="/revoke" onClick={() => setIsMenuOpen(false)}>Revoke Authorities </Link>
 
