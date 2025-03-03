@@ -1,12 +1,15 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { FaTwitter, FaTelegram } from 'react-icons/fa'
+import { FaTwitter, FaTelegram, FaReddit, FaYoutube, FaTiktok } from 'react-icons/fa'
 
 const Footer = () => {
   const socialLinks = [
     { Icon: FaTwitter, url: "https://x.com/MinterDadSolana" },
     { Icon: FaTelegram, url: "https://t.me/DADminterSolanaChat" },
+    { Icon: FaReddit, url: "https://www.reddit.com/u/DadMinterSolana/" },
+    { Icon: FaYoutube, url: "https://youtube.com/@dadmintersolana" },
+    { Icon: FaTiktok, url: "https://www.tiktok.com/@dad.minter.solana" },
   ]
 
   return (
