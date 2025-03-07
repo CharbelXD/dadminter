@@ -31,7 +31,7 @@ const TokensPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const connection = new Connection('https://devnet.helius-rpc.com/?api-key=b8958924-1fba-40a9-8f4c-81979fb8a4c7', 'confirmed');
+  const connection = new Connection('https://little-capable-dream.solana-mainnet.quiknode.pro/d3c1f6637adf56f528716f4ce5c34e177bb24db6', 'confirmed');
 
   const handleMint = (mintAddress: string) => {
     router.push(`/tokens/${mintAddress}`);
