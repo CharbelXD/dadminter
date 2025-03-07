@@ -5,7 +5,7 @@ import { TokenMetadata,pack } from "@solana/spl-token-metadata";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { createInitializeMintInstruction } from "@solana/spl-token";
 const decimal = 9; // You can change this based on your token's needs
-const connection = new web3.Connection('https://little-capable-dream.solana-mainnet.quiknode.pro/d3c1f6637adf56f528716f4ce5c34e177bb24db6/', 'confirmed');
+const connection = new web3.Connection('https://little-capable-dream.solana-mainnet.quiknode.pro/d3c1f6637adf56f528716f4ce5c34e177bb24db6', 'confirmed');
 const TOKEN_2022_PROGRAM_ID = token.TOKEN_2022_PROGRAM_ID;
 const ASSOCIATED_TOKEN_PROGRAM_ID = token.ASSOCIATED_TOKEN_PROGRAM_ID;
 
