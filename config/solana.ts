@@ -5,7 +5,7 @@ import { TokenMetadata,pack } from "@solana/spl-token-metadata";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { createInitializeMintInstruction } from "@solana/spl-token";
 const decimal = 9; // You can change this based on your token's needs
-const connection = new web3.Connection('https://api.devnet.solana.com', 'confirmed');
+const connection = new web3.Connection('https://devnet.helius-rpc.com/?api-key=b8958924-1fba-40a9-8f4c-81979fb8a4c7', 'confirmed');
 const TOKEN_2022_PROGRAM_ID = token.TOKEN_2022_PROGRAM_ID;
 const ASSOCIATED_TOKEN_PROGRAM_ID = token.ASSOCIATED_TOKEN_PROGRAM_ID;
 
