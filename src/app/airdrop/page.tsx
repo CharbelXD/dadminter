@@ -11,7 +11,7 @@ import Footer from '@/components/footer';
 import DevnetInfoSection from "@/components/devent-info-section";
 
 // Move this outside the component
-const connection = new Connection("https://api.devnet.solana.com");
+const connection = new Connection("https://devnet.helius-rpc.com/?api-key=b8958924-1fba-40a9-8f4c-81979fb8a4c7");
 
 async function getBalance(pubKey: string) {
   try {
