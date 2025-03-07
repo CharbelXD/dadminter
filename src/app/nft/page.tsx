@@ -17,7 +17,7 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 
 // ✅ Use a reliable RPC provider
-const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+const connection = new Connection("https://little-capable-dream.solana-mainnet.quiknode.pro/d3c1f6637adf56f528716f4ce5c34e177bb24db6/", "confirmed");
 const metaplex = Metaplex.make(connection);
 
 const PINATA_API_KEY = "c703619539defb5108e3";
