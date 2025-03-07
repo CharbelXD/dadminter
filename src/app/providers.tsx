@@ -17,7 +17,7 @@ export function Providers({ children }: ProvidersProps) {
   const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], []);
 
   return (
-    <ConnectionProvider endpoint="https://api.devnet.solana.com">
+    <ConnectionProvider endpoint="https://little-capable-dream.solana-mainnet.quiknode.pro/d3c1f6637adf56f528716f4ce5c34e177bb24db6">
       <WalletProvider wallets={wallets} autoConnect={true}>
         <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
