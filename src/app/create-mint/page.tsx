@@ -17,6 +17,7 @@ import { Loader2, Upload } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
+
 const Page = () => {
   const [status, setStatus] = useState<string>('');
   const wallet = useWallet();
@@ -55,124 +56,180 @@ const Page = () => {
     try {
       if (!file) {
         alert("No file selected");
-        return;
+        return null;
       }
-
+  
+      setStatus("Uploading image to IPFS...");
+  
       const data = new FormData();
-      data.set("file", file, formData.name);
-      const uploadRequest = await fetch("/api/files", {
+      data.append("file", file);
+  
+      const pinataJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5MTkwMzM2ZC1hNTYzLTQxNzctYTQwNy1kYWYwN2Y0ZGQ1ODkiLCJlbWFpbCI6ImdvemlsbGFvbnRvbkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiNDU1MDU5NzZmYzZhYzlkZTU0OTYiLCJzY29wZWRLZXlTZWNyZXQiOiIwZjQ2YTU4MzAxNmQwYzdhMGU2NDQwNjQ5YTBhOWQwOWIxOGNjM2Q3NjUzNjBkZjczNmEyNGMzMzUwNzdjYjM3IiwiZXhwIjoxNzcxOTE4MjUxfQ.0hToamRHXT0UnbKb7vv7wAgYIQQaXwnOp5o1yJ-hP0g';
+      if (!pinataJwt) {
+        throw new Error("🚨 Missing Pinata JWT in environment variables.");
+      }
+  
+      const uploadRequest = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${pinataJwt}`,
+        },
         body: data,
       });
-      const signedUrl = await uploadRequest.json();
-      return signedUrl;
+  
+      const response = await uploadRequest.json();
+      console.log("Pinata Image Upload Response:", response);
+  
+      if (!response || !response.IpfsHash) {
+        throw new Error("🚨 Failed to upload image to Pinata.");
+      }
+  
+      return `https://ipfs.io/ipfs/${response.IpfsHash}`; // ✅ This will now return ONLY the image CID
     } catch (e) {
-      console.log(e);
-      setUploading(false);
-      alert("Trouble uploading file");
+      console.error("🚨 Error uploading image:", e);
+      setStatus("Error uploading image to IPFS.");
+      return null;
     }
   };
+  
+  
+  
+  
+  
 
  
-  const uploadMetadata = async (metadata: object) => {
-    try {
-      const metadataBlob = new Blob([JSON.stringify(metadata)], {
-        type: "application/json",
-      });
+  // ✅ Define Metadata Type
+type MetadataType = {
+  name: string;
+  description: string;
+  symbol: string;
+  image: string;
+};
 
-      const metadataFormData = new FormData();
-      metadataFormData.set(
-        "file",
-        metadataBlob,
-        `metadata-${formData.name}.json`
-      );
+const uploadMetadata = async (metadata: MetadataType) => {
+  try {
+    console.log("Uploading metadata:", metadata);
 
-      const metadataUploadRequest = await fetch("/api/files", {
-        method: "POST",
-        body: metadataFormData,
-      });
-
-      if (!metadataUploadRequest.ok)
-        throw new Error("Failed to upload metadata");
-
-      alert("Metadata uploaded successfully!");
-      return metadataUploadRequest.json();
-    } catch (e) {
-      console.error("Error uploading metadata:", e);
-      alert("Trouble uploading metadata");
+    const pinataJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5MTkwMzM2ZC1hNTYzLTQxNzctYTQwNy1kYWYwN2Y0ZGQ1ODkiLCJlbWFpbCI6ImdvemlsbGFvbnRvbkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiNDU1MDU5NzZmYzZhYzlkZTU0OTYiLCJzY29wZWRLZXlTZWNyZXQiOiIwZjQ2YTU4MzAxNmQwYzdhMGU2NDQwNjQ5YTBhOWQwOWIxOGNjM2Q3NjUzNjBkZjczNmEyNGMzMzUwNzdjYjM3IiwiZXhwIjoxNzcxOTE4MjUxfQ.0hToamRHXT0UnbKb7vv7wAgYIQQaXwnOp5o1yJ-hP0g'; // ✅ Use secure env variable
+    if (!pinataJwt) {
+      throw new Error("🚨 Missing Pinata JWT in environment variables.");
     }
-  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!wallet.connected) {
-      setStatus('Please connect your wallet first');
-      return;
+    const response = await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${pinataJwt}`,
+        "Content-Type": "application/json", // ✅ Ensure correct format
+      },
+      body: JSON.stringify({
+        pinataMetadata: { name: metadata.name }, // ✅ Now TypeScript recognizes `name`
+        pinataContent: metadata, // ✅ Correctly structured metadata
+      }),
+    });
+
+    const responseData = await response.json();
+    console.log("Pinata Metadata Upload Response:", responseData);
+
+    if (!response.ok) {
+      throw new Error(`🚨 Pinata API Error: ${responseData.error || response.statusText}`);
     }
-    try{
 
+    if (!responseData.IpfsHash) {
+      throw new Error("🚨 Failed to retrieve IPFS hash from Pinata.");
+    }
+
+    return `https://ipfs.io/ipfs/${responseData.IpfsHash}`; // ✅ Correct IPFS format
+  } catch (e) {
+    console.error("🚨 Error uploading metadata:", e);
+    alert("Trouble uploading metadata to Pinata. Check your API key.");
+    return null;
+  }
+};
+
+  
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!wallet.connected) {
+    setStatus('Please connect your wallet first');
+    return;
+  }
+
+  try {
     setUploading(true);
     setStatus('Uploading image to IPFS...');
 
-    const imageURL = await uploadFile();
-    if (imageURL) {
-      const metadata = {
-        name: formData.name,
-        description: formData.description,
-        symbol: formData.symbol,
-        image: imageURL,
-      };
+    // ✅ Step 1: Upload Image First and get the correct Image CID
+    const imageCID = await uploadFile();
+    if (!imageCID) {
+      setStatus("Error uploading image to IPFS.");
+      setUploading(false);
+      return;
+    }
 
-      const response = await uploadMetadata(metadata);
-      console.log("Metadata response:", response);
-      const userAddress = wallet.publicKey?.toBase58();
+    console.log("✅ Image IPFS CID:", imageCID); // Debugging
 
-      const token = await createMint(
-        metadata,
-        wallet,
-        response
-      );
-      
-      
-      console.log("Token created:", token);
+    // ✅ Step 2: Create Metadata JSON with correct image CID
+    const metadata = {
+      name: formData.name,
+      description: formData.description,
+      symbol: formData.symbol,
+      image: imageCID, // ✅ Now it correctly stores the direct image IPFS CID
+    };
+
+    console.log("✅ Metadata before upload:", metadata);
+    setStatus('Uploading metadata to IPFS...');
+
+    // ✅ Step 3: Upload Metadata JSON to IPFS
+    const metadataCID = await uploadMetadata(metadata);
+    if (!metadataCID) {
+      setStatus("Error uploading metadata to IPFS.");
+      setUploading(false);
+      return;
+    }
+
+    console.log("✅ Metadata IPFS URI:", metadataCID);
+
+    const userAddress = wallet.publicKey?.toBase58();
+
+    setStatus('Creating Solana token...');
+    const token = await createMint(metadata, wallet, metadataCID);
+
+    console.log("✅ Token created:", token);
+
     const userDocRef = doc(collection(db, "tokens"), userAddress);
     const userDocSnap = await getDoc(userDocRef);
- 
+
     if (userDocSnap.exists()) {
-      // If the document exists, update the tokens array by pushing the new token
       await updateDoc(userDocRef, {
-        tokens: arrayUnion(token)  // Push the new token to the existing array
+        tokens: arrayUnion(token),
       });
       setStatus('Token added to your existing record!');
     } else {
-      // If the document does not exist, create a new one with the tokens array
       await setDoc(userDocRef, {
         userAddress: userAddress,
-        tokens: [token],  // Initialize the array with the first token
+        tokens: [token],
       });
       setStatus('New token record created for user!');
     }
-
-
-      setUploading(false);
-      setFormData({
-        name: "",
-        symbol: "",
-        description: "",  
-      });
-      setFile(undefined);
-      setImagePreview(null);
-    
-    }}
-    catch (error) {
-      if (error instanceof Error) {
-        setStatus(`Error: ${error.message}`);
-      }
-    } finally {
-      setUploading(false);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("🚨 Error:", error.message);
+      setStatus(`Error: ${error.message}`);
+    } else {
+      console.error("🚨 Unknown error:", error);
+      setStatus("An unexpected error occurred.");
     }
-    
-  };
+  } finally {
+    setUploading(false);
+  }
+};
+
+
+
+
+  
 
   return (
     <div className="flex flex-col min-h-screen">
