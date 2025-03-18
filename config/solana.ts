@@ -13,6 +13,7 @@ interface MetadataForm{
     name: string;
     symbol: string;
     description: string;
+    uri?: string;
 }
 
 export async function getOrCreateAssociatedTokenAccount(
